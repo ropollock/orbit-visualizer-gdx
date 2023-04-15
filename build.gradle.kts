@@ -6,6 +6,7 @@ import org.gradle.kotlin.dsl.repositories
 plugins {
     kotlin("jvm") version "1.6.10"
     application
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 repositories {
@@ -15,11 +16,13 @@ repositories {
 
 val gdxVersion = "1.10.0"
 val kotlinVersion = "1.6.10"
-val mainClassName = "com.triskil.orbitvisualizer.Main"
+val mainClassName = "com.triskil.orbitvisualizer.MainKt"
 
 application {
     mainClass.set(mainClassName)
 }
+
+project.setProperty("mainClassName", mainClassName)
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -45,4 +48,23 @@ tasks.withType<JavaExec> {
 tasks.named("run", JavaExec::class.java) {
     systemProperty("org.lwjgl.opengl.Display.allowSoftwareOpenGL", "true")
     systemProperty("org.lwjgl.opengl.Display.enableOSXFullscreenModeAPI", "false")
+}
+
+tasks {
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+
+    val shadowJar by existing(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
+        archiveClassifier.set("")
+        manifest {
+            attributes["Main-Class"] = mainClassName
+        }
+        configurations = listOf(project.configurations.getByName("runtimeClasspath"))
+        mergeServiceFiles()
+    }
+
+    val build by existing {
+        dependsOn(shadowJar)
+    }
 }
