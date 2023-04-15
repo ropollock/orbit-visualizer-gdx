@@ -26,7 +26,7 @@ class OrbitVisualizerApp : ApplicationAdapter() {
     private lateinit var camController: CameraInputController
 
     override fun create() {
-        camera = PerspectiveCamera(67f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
+        camera = PerspectiveCamera(60f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(10f, 10f, 10f)
         camera.lookAt(0f, 0f, 0f)
         camera.near = 1f
@@ -45,18 +45,27 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         val planeModel = createPlaneModel(5f, 32)
         planeInstance = ModelInstance(planeModel)
 
+        val centerObjRadius = 0.3f
         val centerModel = createObjectModel(0.3f, Color.WHITE)
         centerInstance = ModelInstance(centerModel)
 
         objectInstances = mutableListOf()
         val planeRadius = 5f
         val objectDrift = 0.5f
+        val objectMinSize = 0.05f
+        val objectMaxSize = 0.2f
+        val minCenterDistance = centerObjRadius * 2.5f
+
         for (i in 0 until 10) {
-            val objectModel = createObjectModel(0.15f, Color.GREEN)
+            val objectModel = createObjectModel(Random.nextFloat() * (objectMaxSize - objectMinSize) + objectMinSize, Color.GREEN)
             val objectInstance = ModelInstance(objectModel)
 
             val randomAngle = Random.nextDouble() * 2 * Math.PI
-            val randomDistance = Random.nextDouble() * planeRadius
+            var randomDistance = Random.nextDouble() * planeRadius
+            while(randomDistance < minCenterDistance) {
+                randomDistance = Random.nextDouble() * planeRadius
+            }
+
             val x = (randomDistance * Math.cos(randomAngle)).toFloat()
             val y = Random.nextFloat() * objectDrift - objectDrift / 2
             val z = (randomDistance * Math.sin(randomAngle)).toFloat()
