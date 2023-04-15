@@ -20,6 +20,7 @@ class OrbitVisualizerApp : ApplicationAdapter() {
     private lateinit var modelBatch: ModelBatch
     private lateinit var environment: Environment
     private lateinit var planeInstance: ModelInstance
+    private lateinit var centerInstance: ModelInstance
     private lateinit var objectInstances: MutableList<ModelInstance>
     private lateinit var camController: CameraInputController
 
@@ -43,10 +44,13 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         val planeModel = createPlaneModel(5f, 32)
         planeInstance = ModelInstance(planeModel)
 
+        val centerModel = createObjectModel(0.3f, Color.WHITE)
+        centerInstance = ModelInstance(centerModel)
+
         objectInstances = mutableListOf()
         val planeRadius = 5f
         for (i in 0 until 10) {
-            val objectModel = createObjectModel()
+            val objectModel = createObjectModel(0.15f, Color.GREEN)
             val objectInstance = ModelInstance(objectModel)
 
             val randomAngle = Random.nextDouble() * 2 * Math.PI
@@ -67,6 +71,9 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         // Apply the random rotation to the plane
         planeInstance.transform.set(randomRotation)
 
+        // Apply the random rotation to the center object
+        centerInstance.transform.set(randomRotation)
+
         // Apply the random rotation to the boxes and then translate them to the new position
         objectInstances.forEach {
             val boxPosition = Vector3(it.transform.getTranslation(Vector3()))
@@ -85,6 +92,7 @@ class OrbitVisualizerApp : ApplicationAdapter() {
 
         modelBatch.begin(camera)
         modelBatch.render(planeInstance, environment)
+        modelBatch.render(centerInstance, environment)
         objectInstances.forEach { modelBatch.render(it, environment) }
         modelBatch.end()
     }
@@ -106,11 +114,10 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         return modelBuilder.end()
     }
 
-    private fun createObjectModel(): Model {
+    private fun createObjectModel(radius: Float = 0.5f, color: Color = Color.GREEN): Model {
         val modelBuilder = ModelBuilder()
-        val radius = 0.5f
         val divisions = 16
-        val material = Material(ColorAttribute.createDiffuse(Color.GREEN))
+        val material = Material(ColorAttribute.createDiffuse(color))
         val usageCode = Usage.Position.toLong() or Usage.Normal.toLong()
 
         modelBuilder.begin()
