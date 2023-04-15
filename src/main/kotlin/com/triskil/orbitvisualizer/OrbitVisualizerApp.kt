@@ -2,6 +2,7 @@ package com.triskil.orbitvisualizer
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.PerspectiveCamera
@@ -15,6 +16,7 @@ import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector3
 import kotlin.random.Random
+import kotlin.random.nextInt
 
 class OrbitVisualizerApp : ApplicationAdapter() {
     private lateinit var camera: PerspectiveCamera
@@ -24,12 +26,13 @@ class OrbitVisualizerApp : ApplicationAdapter() {
     private lateinit var centerInstance: ModelInstance
     private lateinit var objectInstances: MutableList<ModelInstance>
     private lateinit var camController: CameraInputController
+    private val centerObjRadius = 0.3f
 
     override fun create() {
         camera = PerspectiveCamera(60f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(10f, 10f, 10f)
         camera.lookAt(0f, 0f, 0f)
-        camera.near = 1f
+        camera.near = 0.1f
         camera.far = 1000f
         camera.update()
 
@@ -40,29 +43,36 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         Gdx.gl.glDepthFunc(GL20.GL_LEQUAL)
         Gdx.gl.glEnable(GL20.GL_CULL_FACE)
         Gdx.gl.glCullFace(GL20.GL_NONE)
-        environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f))
+        environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.6f, 0.6f, 0.6f, 1f))
 
         val planeModel = createPlaneModel(5f, 32)
         planeInstance = ModelInstance(planeModel)
 
-        val centerObjRadius = 0.3f
         val centerModel = createObjectModel(0.3f, Color.WHITE)
         centerInstance = ModelInstance(centerModel)
 
+        createSystem()
+
+        camController = CameraInputController(camera)
+        Gdx.input.inputProcessor = camController
+    }
+
+    private fun createSystem() {
         objectInstances = mutableListOf()
         val planeRadius = 5f
         val objectDrift = 0.5f
         val objectMinSize = 0.05f
         val objectMaxSize = 0.2f
         val minCenterDistance = centerObjRadius * 2.5f
-
-        for (i in 0 until 10) {
-            val objectModel = createObjectModel(Random.nextFloat() * (objectMaxSize - objectMinSize) + objectMinSize, Color.GREEN)
+        val objectCount = Random.nextInt(3..15)
+        for (i in 0 until objectCount) {
+            val objectModel =
+                createObjectModel(Random.nextFloat() * (objectMaxSize - objectMinSize) + objectMinSize, Color.GREEN)
             val objectInstance = ModelInstance(objectModel)
 
             val randomAngle = Random.nextDouble() * 2 * Math.PI
             var randomDistance = Random.nextDouble() * planeRadius
-            while(randomDistance < minCenterDistance) {
+            while (randomDistance < minCenterDistance) {
                 randomDistance = Random.nextDouble() * planeRadius
             }
 
@@ -92,12 +102,13 @@ class OrbitVisualizerApp : ApplicationAdapter() {
             val rotatedBoxPosition = boxPosition.mul(randomRotation)
             it.transform.setTranslation(rotatedBoxPosition)
         }
-
-        camController = CameraInputController(camera)
-        Gdx.input.inputProcessor = camController
     }
 
     override fun render() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            createSystem()
+        }
+
         Gdx.gl.glViewport(0, 0, Gdx.graphics.width, Gdx.graphics.height)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
