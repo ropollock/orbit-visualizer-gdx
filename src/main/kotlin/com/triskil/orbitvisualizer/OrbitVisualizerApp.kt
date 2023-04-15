@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.PerspectiveCamera
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
 import com.badlogic.gdx.graphics.g3d.*
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
@@ -49,6 +50,7 @@ class OrbitVisualizerApp : ApplicationAdapter() {
 
         objectInstances = mutableListOf()
         val planeRadius = 5f
+        val objectDrift = 0.5f
         for (i in 0 until 10) {
             val objectModel = createObjectModel(0.15f, Color.GREEN)
             val objectInstance = ModelInstance(objectModel)
@@ -56,7 +58,7 @@ class OrbitVisualizerApp : ApplicationAdapter() {
             val randomAngle = Random.nextDouble() * 2 * Math.PI
             val randomDistance = Random.nextDouble() * planeRadius
             val x = (randomDistance * Math.cos(randomAngle)).toFloat()
-            val y = 0f
+            val y = Random.nextFloat() * objectDrift - objectDrift / 2
             val z = (randomDistance * Math.sin(randomAngle)).toFloat()
 
             objectInstance.transform.setTranslation(x, y, z)
@@ -91,7 +93,9 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
         modelBatch.begin(camera)
+        Gdx.gl.glEnable(GL20.GL_BLEND) // Enable blending
         modelBatch.render(planeInstance, environment)
+        Gdx.gl.glDisable(GL20.GL_BLEND) // Disable blending
         modelBatch.render(centerInstance, environment)
         objectInstances.forEach { modelBatch.render(it, environment) }
         modelBatch.end()
@@ -105,7 +109,9 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         val modelBuilder = ModelBuilder()
         modelBuilder.begin()
         val material = Material()
-        material.set(ColorAttribute.createDiffuse(Color.BLUE))
+        val semiTransparentBlue = Color(0f, 0f, 1f, 0.5f) // Set the color to semi-transparent blue
+        material.set(ColorAttribute.createDiffuse(semiTransparentBlue))
+        material.set(BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)) // Enable blending
         val node = modelBuilder.node()
         node.translation.set(0f, 0f, 0f)
         node.scale.set(1f, 0.001f, 1f)
