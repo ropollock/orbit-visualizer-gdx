@@ -122,9 +122,9 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
         modelBatch.begin(camera)
-        Gdx.gl.glEnable(GL20.GL_BLEND) // Enable blending
+        Gdx.gl.glEnable(GL20.GL_BLEND)
         modelBatch.render(planeInstance, environment)
-        Gdx.gl.glDisable(GL20.GL_BLEND) // Disable blending
+        Gdx.gl.glDisable(GL20.GL_BLEND)
         modelBatch.render(centerInstance, environment)
         objectInstances.forEach { modelBatch.render(it, environment) }
         modelBatch.end()
@@ -138,9 +138,9 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         val modelBuilder = ModelBuilder()
         modelBuilder.begin()
         val material = Material()
-        val semiTransparentBlue = Color(0f, 0f, 1f, 0.5f) // Set the color to semi-transparent blue
+        val semiTransparentBlue = Color(0f, 0f, 1f, 0.5f)
         material.set(ColorAttribute.createDiffuse(semiTransparentBlue))
-        material.set(BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)) // Enable blending
+        material.set(BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA))
         val node = modelBuilder.node()
         node.translation.set(0f, 0f, 0f)
         node.scale.set(1f, 0.001f, 1f)
