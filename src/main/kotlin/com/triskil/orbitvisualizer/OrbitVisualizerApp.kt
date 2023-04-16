@@ -15,6 +15,8 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.SphereShapeBuilder
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector3
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -26,9 +28,14 @@ class OrbitVisualizerApp : ApplicationAdapter() {
     private lateinit var centerInstance: ModelInstance
     private lateinit var objectInstances: MutableList<ModelInstance>
     private lateinit var camController: CameraInputController
+    private lateinit var config: Config
     private val centerObjRadius = 0.3f
 
     override fun create() {
+        config = ConfigFactory.load()
+        val planeRadius = config.getDouble("orbit-visualizer.plane.radius").toFloat()
+        val centerRadius  = config.getDouble("orbit-visualizer.center.radius").toFloat()
+
         camera = PerspectiveCamera(60f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
         camera.position.set(10f, 10f, 10f)
         camera.lookAt(0f, 0f, 0f)
@@ -45,10 +52,10 @@ class OrbitVisualizerApp : ApplicationAdapter() {
         Gdx.gl.glCullFace(GL20.GL_NONE)
         environment.set(ColorAttribute(ColorAttribute.AmbientLight, 0.6f, 0.6f, 0.6f, 1f))
 
-        val planeModel = createPlaneModel(5f, 32)
+        val planeModel = createPlaneModel(planeRadius, 32)
         planeInstance = ModelInstance(planeModel)
 
-        val centerModel = createObjectModel(0.3f, Color.WHITE)
+        val centerModel = createObjectModel(centerRadius, Color.WHITE)
         centerInstance = ModelInstance(centerModel)
 
         createSystem()
@@ -59,12 +66,14 @@ class OrbitVisualizerApp : ApplicationAdapter() {
 
     private fun createSystem() {
         objectInstances = mutableListOf()
-        val planeRadius = 5f
-        val objectDrift = 0.5f
-        val objectMinSize = 0.05f
-        val objectMaxSize = 0.2f
-        val minCenterDistance = centerObjRadius * 2.5f
-        val objectCount = Random.nextInt(3..15)
+        val planeRadius = config.getDouble("orbit-visualizer.plane.radius").toFloat()
+        val objectDrift = config.getDouble("orbit-visualizer.objects.drift").toFloat()
+        val objectMinSize = config.getDouble("orbit-visualizer.objects.minSize").toFloat()
+        val objectMaxSize = config.getDouble("orbit-visualizer.objects.maxSize").toFloat()
+        val minCenterDistance = centerObjRadius * config.getDouble("orbit-visualizer.objects.minCenterDistanceMultiplier").toFloat()
+        val minCount = config.getInt("orbit-visualizer.objects.minCount")
+        val maxCount = config.getInt("orbit-visualizer.objects.maxCount")
+        val objectCount = Random.nextInt(minCount..maxCount)
         for (i in 0 until objectCount) {
             val objectModel =
                 createObjectModel(Random.nextFloat() * (objectMaxSize - objectMinSize) + objectMinSize, Color.GREEN)
